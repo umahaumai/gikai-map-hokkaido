@@ -84,7 +84,8 @@ function cellToText(value) {
 
 /**
  * OCRのMarkdownを、サイトのOCR表示（等幅の <pre>）と行単位の検索に合わせた平文へ整える。
- * 表は「1行=1行」を保ち、列は ` | ` で区切る（空セルは列位置を保つため残す）。
+ * 表は「1行=1行」を保ち、列は ` | ` で区切り、外側も `|` で囲む。
+ * 空セルは落とさない（落とすと「節」列の行が「目」列に見えるなど列位置の情報が壊れるため）。
  */
 function toPlainText(markdown) {
   const lines = [];
@@ -96,10 +97,8 @@ function toPlainText(markdown) {
         .replace(/\|\s*$/u, "")
         .split("|")
         .map(cellToText);
-      while (cells.length && cells[cells.length - 1] === "") cells.pop();
-      while (cells.length && cells[0] === "") cells.shift();
       if (cells.every((cell) => /^:?-{2,}:?$/u.test(cell))) continue;
-      lines.push(cells.join(" | ").trim());
+      lines.push(`| ${cells.join(" | ")} |`.replace(/\s+$/u, ""));
       continue;
     }
     // ページ番号の行はそのまま残す（先頭のダッシュを箇条書き記号として落とさない）
